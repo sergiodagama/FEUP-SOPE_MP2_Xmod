@@ -45,6 +45,22 @@ char* verbal_to_octal(char verbal[]){  //array with nine characters representing
 }
 
 /**
+ * @brief Converts string with file all permissions in verbal mode to octal mode, but returns int value, instead of string
+ *
+ * @param verbal the string in verbal mode
+ *  return integer with permissions in octal mode
+ */
+int verbal_to_octal_int(char verbal[]){
+    char *octal_string = malloc(sizeof(char) * 3 + 1);
+
+    octal_string = verbal_to_octal(verbal);
+
+    int octal_int = strtol(octal_string, NULL, 8);
+
+    return octal_int;
+}
+
+/**
  * @brief Converts string with file permissions of one user type in verbal mode to octal mode
  *
  * @param verbal the string in verbal mode
@@ -572,6 +588,10 @@ int main()
         printf("MODE: %s", res);
 	}
 
+	//test verbal_to_octal_int
+
+	printf("VERBAL TO OCTAL INT: %o\n", verbal_to_octal_int("rwxrwxrwx"));
+
 	return 0;
 }
 
@@ -646,7 +666,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             perms_array[2] = 'x';
                         }
 
-                        res = chmod(file_name, perms_array);
+                        res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                         display = 2;
                     }
@@ -666,7 +686,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             perms_array[2] = '-';
                         }
 
-                        res = chmod(file_name, perms_array);
+                        res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                         display = 2;
                     }
@@ -698,7 +718,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             display = 1;
                         }
                         else{
-                            res = chmod(file_name, perms_array);
+                            res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                             display = 2;
                         }
@@ -723,7 +743,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             perms_array[5] = 'x';
                         }
 
-                        res = chmod(file_name, perms_array);
+                        res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                         display = 2;
                     }
@@ -743,7 +763,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             perms_array[5] = '-';
                         }
 
-                        res = chmod(file_name, perms_array);
+                        res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                         display = 2;
                     }
@@ -774,7 +794,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             display = 1;
                         }
                         else{
-                            res = chmod(file_name, perms_array);
+                            res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                             display = 2;
                         }
@@ -798,7 +818,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             perms_array[8] = 'x';
                         }
 
-                        res = chmod(file_name, perms_array);
+                        res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                         display = 2;
                     }
@@ -818,7 +838,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             perms_array[8] = '-';
                         }
 
-                        res = chmod(file_name, perms_array);
+                        res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                         display = 2;
                     }
@@ -849,7 +869,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                             display = 1;
                         }
                         else{
-                            res = chmod(file_name, perms_array);
+                            res = chmod(file_name, verbal_to_octal_int(perms_array));
 
                             display = 2;
                         }
