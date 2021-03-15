@@ -17,7 +17,7 @@
 //status: to be solved
 //
 //-> found bug in commands of type xmod (-v/-c/etc) 777 file
-//status: to be solved
+//status: solved!
 //________________________________________________________________________
 
 #include "xmod_utils.h"
@@ -31,9 +31,9 @@ int main(int argc, char *argv[]){
     else{
         //the case where options are used
         if(strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--verbose") == 0 || strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--changes") == 0){  
-            //checks for octal input first, if it is, convert it to verbal
+            //octal mode given, but with option
             if(octal_checker(argv[2])){
-                octal_permissions_changer_with_display(argv[3], argv[2], argv[1]){
+                octal_permissions_changer_with_display(argv[3], argv[2], argv[1]);
             }
             else{
                 verbal_permissions_changer_encapsulated(argv[3], argv[1], argv[2]);

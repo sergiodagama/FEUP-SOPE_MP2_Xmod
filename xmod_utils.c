@@ -603,7 +603,7 @@ bool octal_permissions_changer(char file_name[], char octals[]){
 
             new_file_permissions = get_permissions(file_name);
 
-            if(!(file_equal_permission_all(new_file_permissions, old_file_permissions, true))){ //only if the permissions have changed
+            if(!(strcmp(new_file_permissions, old_file_permissions) == 0)){ //only if the permissions have changed
                 message_displayer(false, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), new_file_permissions, octal_to_verbal(new_file_permissions));
             }
         }
@@ -611,13 +611,14 @@ bool octal_permissions_changer(char file_name[], char octals[]){
             return false;
         }
     }
-    else if(!(strcmp(option, "-v") == 0 || strcmp(option, "--verbose") == 0)){ 
+    else if(strcmp(option, "-v") == 0 || strcmp(option, "--verbose") == 0){ 
          if(octal_permissions_changer(file_name, octals)){
+             
             char* new_file_permissions = malloc(sizeof(char) * 9 + 1);
 
             new_file_permissions = get_permissions(file_name);
 
-            if(file_equal_permission_all(new_file_permissions, old_file_permissions, true)){
+            if(strcmp(new_file_permissions, old_file_permissions) == 0){
                 message_displayer(true, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), old_file_permissions, octal_to_verbal(old_file_permissions));
             }else{
                 message_displayer(false, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), new_file_permissions, octal_to_verbal(new_file_permissions));
