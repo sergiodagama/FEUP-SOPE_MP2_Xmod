@@ -1012,7 +1012,7 @@ int verbal_permissions_changer_encapsulated(char file_name[], char option[], cha
     }
 }
 
-//UNCOMMENT THE NEXT LINE AND THE RESPECTIVE CLOSER TO USE THE UTILS OTHER FILE
+//UNCOMMENT THE NEXT LINE AND THE RESPECTIVE CLOSER TO TEXT THE UTILS ONE BY ONE
 /*
 int main()
 {
