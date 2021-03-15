@@ -416,6 +416,38 @@ bool no_multi_perm_in(char perms[], char permission[]){
 }
 
 /**
+ * @brief Checks if the given string is a file or a directory that exists
+ *
+ * @param file_name, the string representing the directory or the file to be checked
+ * @return true if it is exists, false otherwise
+ */
+bool file_and_dir_checker(char file_name[]){
+
+    bool file_exists = false;
+
+    struct stat buffer;
+
+    if(stat(file_name, &buffer) == 0) file_exists = true;
+
+    return file_exists;
+}
+
+/**
+ * @brief Checks if the given string is a valid octal
+ *
+ * @param octals, the octals to be checked
+ * @return true if it is valid, false otherwise
+ */
+bool octal_checker(char octals[]){
+    int size = strlen(octals);
+
+    for(int i = 0; i < size; i++){
+        if(!(octals[i] >= '0' && octals[i] <= '7')) return false;
+    }
+    return true;
+}
+
+/**
  * @brief Resolves the user input mode argument
  *
  * @param mode_argument, the whole argument containing the user (u | g | o | a), action (+ | - | = ) and permissions (rwx)
@@ -538,15 +570,16 @@ bool octal_permissions_changer(char file_name[], char octals[]){
 }
 
 /**
- * @brief Changes file permissions in octal mode
+ * @brief Changes file permissions in verbal mode
  *
  * @param file_name the file whose permissions are going to be changed
  * @param verbals the verbals of the permissions to be changed
  * @param action, one of this three: + | - | =
  * @param user_type, one of these three: u | g | o | a
+ * @param option, one of these values: -c | -v | --verbose | --changes 
  * @return 0 if no erros, -1 otherwise
  */
-int verbal_permissions_changer(char file_name[], char verbals[], char action[], char user_type[]){
+int verbal_permissions_changer(char file_name[], char verbals[], char action[], char user_type[], char option[]){
     char *file_permissions = malloc(sizeof(char) * 3 + 1);
 
     file_permissions = get_permissions(file_name);
@@ -566,6 +599,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
     int res = 0;
     int display = 0;
 
+    //mode 'a'
     if(strlen(verbals) == 9 && strcmp(user_type, "a") == 0){ //when it is suppose to change all the premissions
     
         if(file_equal_permission_all(file_name, verbal_to_octal(verbals), true)){
@@ -577,7 +611,7 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
         }
     }
     else{
-        //OPTION 'u'
+        //mode 'u'
         if(strcmp(user_type, "u") == 0){
             if(strcmp(action, "+") == 0){
                     
@@ -655,10 +689,10 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                 }
             }
             else{
-                printf("\nERROR: User type 'u'\n");
+                printf("\nERROR: mode 'u'\n");
             }
         }
-        //OPTION 'g'
+        //mode 'g'
         else if(strcmp(user_type, "g") == 0){
             if(strcmp(action, "+") == 0){
                 if(multi_perm_in(verbals, get_group_permissions(octal_to_verbal(file_permissions), false))){
@@ -731,9 +765,10 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                     display = 2;
                 }
             }else{
-                printf("\nERROR: option 'g'\n");
+                printf("\nERROR: mode 'g'\n");
             }
         }
+        //mode 'o'
         else if(strcmp(user_type, "o") == 0){
             if(strcmp(action, "+") == 0){
                 if(multi_perm_in(verbals, get_other_permissions(octal_to_verbal(file_permissions), false))){
@@ -807,13 +842,26 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
                     }
             }
             else{
-                printf("\nERROR: option 'o'\n");
+                printf("\nERROR: mode 'o'\n");
             }
         }
         else{
             printf("ERROR: user type not correct!\n");
             res = -1;
         }
+    }
+
+    //options
+    if(strcmp(option, "") == 0){
+        display = 3;
+    }
+    else if(strcmp(option, "-c") == 0 || strcmp(option, "--changes") == 0){
+        if(display == 1) display = 3; //only prints info when changes occur (when display equals to two)
+    }
+    else if(!(strcmp(option, "-v") == 0 || strcmp(option, "--verbose") == 0)){ //to only allow the options listed
+        printf("ERROR: no valid option inputted!\n");
+        display = 3;
+        res = -1;
     }
 
     if(res == 0){
@@ -920,14 +968,22 @@ int main()
 
     char *file_name = "t.txt";
 
-    //printf("PREVIOUS PERMISSIONS: %s\n", get_permissions(file_name));
+    printf("PREVIOUS PERMISSIONS: %s\n", get_permissions(file_name));
 
-    //printf("OCTAL PERMISSION CHANGER: %s %d\n", file_name, octal_permissions_changer(file_name, "111"));
+    //printf("OCTAL PERMISSION CHANGER: %s %d\n", file_name, octal_permissions_changer(file_name, "7"));
 
     //test verbal_permission_changer
 
-    printf("VERBAL PERMISSION CHANGER: %d", verbal_permissions_changer("t.txt", "rwx------", "+", "a"));
+    printf("VERBAL PERMISSION CHANGER: %d\n", verbal_permissions_changer("test", "rwx------", "+", "a", "--verbose"));
     
+    //test to octal_checker
+
+    printf("OCTAL CHECKER TEST: %d\n", octal_checker("9"));
+
+    //test to file_and_dir_checker
+
+    printf("FILE AND DIR CHECKER TEST: %d\n", file_and_dir_checker("t.txt"));
+
 	return 0;
 }
 
