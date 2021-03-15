@@ -1,3 +1,14 @@
+/**
+ * @file xmod.utils.c
+ * @author N0il
+ * @brief Set of functions used to make xmod program, all functions have their respective tests on the last section of code commented
+ * @version 0.1
+ * @date 2021-03-15
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -563,10 +574,17 @@ char* mode_resolver(char mode_argument[]){
  */
 bool octal_permissions_changer(char file_name[], char octals[]){
 
-    int mode = strtol(octals, NULL, 8);
+    if(file_and_dir_checker(file_name)){
 
-    if(chmod(file_name, mode) == 0) return true;
-    else return false;
+        int mode = strtol(octals, NULL, 8);
+
+        if(chmod(file_name, mode) == 0) return true;
+        else return false;
+    }
+    else{
+        printf("cannot access '%s': No such file or directory\n", file_name);
+        return false;
+    }
 }
 
 /**
@@ -888,6 +906,65 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
     return res;
 }
 
+/**
+ * @brief Encapsulates verbal_permissions_changer to treat all the preparations and only receive minimal input
+ * 
+ * @param file_name the directory or file name
+ * @param option one of these values: "-v" | "--verbose" | "-c" | "--changes" | ""
+ * @param mode the rough mode string from arguments that will be treated accordingly
+ * @return returns 0 if no erros, else -1
+ */
+int verbal_permissions_changer_encapsulated(char file_name[], char option[], char mode[]){
+
+    char *resolved_mode;
+
+    //checks if file or directory exists or not
+    if(file_and_dir_checker(file_name)){
+        resolved_mode = mode_resolver(mode);
+
+        if(resolved_mode != NULL){
+            //needed strings to invoke verbal_permissions changer
+            char *user_type = malloc(sizeof(char) * 1 + 1);
+
+            user_type[0] = resolved_mode[0];
+            user_type[1] = '\0';
+
+            char *action = malloc(sizeof(char) * 1 + 1);
+
+            action[0] = resolved_mode[1];
+            action[1] = '\0';
+
+            char *perms;
+
+            if(user_type[0] == 'u' || user_type[0] == 'g' || user_type[0] == 'o'){  //in case of changing solo user permissions
+                perms = malloc(sizeof(char) * 3 + 1);
+
+                for(int i = 0; i < 3; i++){
+                    perms[i] = resolved_mode[i + 2];
+                }
+            }
+            else{  //in case of changing all permissions
+                perms = malloc(sizeof(char) * 9 + 1);
+
+                for(int i = 0; i < 9; i++){
+                    perms[i] = resolved_mode[i + 2];
+                }
+            }
+
+            //calls verbal permissions changer
+            return verbal_permission_changer(file_name, perms, action, user_type, option);
+        }
+        else{
+            printf("Invalid mode given!\n");
+            return -1;
+        }
+    }
+    else{
+        printf("cannot access '%s': No such file or directory\n", file_name);
+        return -1;
+    }
+}
+
 int main()
 {
 	//test to verbal_to_octal converter
@@ -964,7 +1041,7 @@ int main()
 
 	printf("VERBAL TO OCTAL INT: %o\n\n", verbal_to_octal_int("rwxrwxrwx"));
 
-    //test octal_permission_changer
+    //test octal_permissions_changer
 
     char *file_name = "t.txt";
 
@@ -986,7 +1063,3 @@ int main()
 
 	return 0;
 }
-
-
-
-
