@@ -584,6 +584,55 @@ bool octal_permissions_changer(char file_name[], char octals[]){
 }
 
 /**
+ * @brief Changes file permissions in octal mode and displays
+ *
+ * @param file_name the file whose permissions are going to be changed
+ * @param octals the octals of the permissions to be changed
+ * @param option the option, one of these: -v | --verbose | -c | --changes
+ * @return true on success, false otherwise
+ */
+ bool octal_permissions_changer_with_display(char file_name[], char octals[], char option[]){
+    char* old_file_permissions = malloc(sizeof(char) * 9 + 1);
+
+    old_file_permissions = get_permissions(file_name);
+     
+    if(strcmp(option, "-c") == 0 || strcmp(option, "--changes") == 0){
+        if(octal_permissions_changer(file_name, octals)){
+
+            char* new_file_permissions = malloc(sizeof(char) * 9 + 1);
+
+            new_file_permissions = get_permissions(file_name);
+
+            if(!(file_equal_permission_all(new_file_permissions, old_file_permissions, true))){ //only if the permissions have changed
+                message_displayer(false, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), new_file_permissions, octal_to_verbal(new_file_permissions));
+            }
+        }
+        else{
+            return false;
+        }
+    }
+    else if(!(strcmp(option, "-v") == 0 || strcmp(option, "--verbose") == 0)){ 
+         if(octal_permissions_changer(file_name, octals)){
+            char* new_file_permissions = malloc(sizeof(char) * 9 + 1);
+
+            new_file_permissions = get_permissions(file_name);
+
+            if(file_equal_permission_all(new_file_permissions, old_file_permissions, true)){
+                message_displayer(true, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), old_file_permissions, octal_to_verbal(old_file_permissions));
+            }else{
+                message_displayer(false, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), new_file_permissions, octal_to_verbal(new_file_permissions));
+            }
+         }else{
+             return false;
+         }
+    }
+    else{
+        printf("Not a valid option!\n");
+        return false;
+    }
+ }
+
+/**
  * @brief Changes file permissions in verbal mode
  *
  * @param file_name the file whose permissions are going to be changed

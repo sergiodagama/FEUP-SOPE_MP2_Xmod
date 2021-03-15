@@ -56,6 +56,8 @@ char* mode_resolver(char mode_argument[]);
 
 bool octal_permissions_changer(char file_name[], char octals[]);
 
+bool octal_permissions_changer_with_display(char file_name[], char octals[], char option[]);
+
 int verbal_permissions_changer(char file_name[], char verbals[], char action[], char user_type[], char option[]);
 
 int verbal_permissions_changer_encapsulated(char file_name[], char option[], char mode[]);
