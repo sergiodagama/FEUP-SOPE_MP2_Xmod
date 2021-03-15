@@ -2,7 +2,7 @@
  * @file xmod.utils.c
  * @author N0il
  * @brief Set of functions used to make xmod program, all functions have their respective tests on the last section of code commented
- * @version 0.1
+ * @version 0.11
  * @date 2021-03-15
  * 
  * @copyright Copyright (c) 2021
@@ -487,7 +487,9 @@ char* mode_resolver(char mode_argument[]){
     //to get the last inserted user type and action
     for(int i = 0; i < size - 1; i++){
         if(mode_argument[i + 1] == '+' || mode_argument[i + 1] == '-' || mode_argument[i + 1] == '='){ //if none of this are inputted then it will be invalid, because resolve[0] wont have a valid value
-            resolved[0] = mode_argument[i];
+            if(mode_argument[i] == 'u' || mode_argument[i] == 'g' || mode_argument[i] == 'o' || mode_argument[i] == 'a'){
+                resolved[0] = mode_argument[i];
+            }
         }
         if(mode_argument[i + 1] == 'r' || mode_argument[i + 1] == 'w' || mode_argument[i + 1] == 'x'){
             resolved[1] = mode_argument[i];
@@ -923,6 +925,7 @@ int verbal_permissions_changer_encapsulated(char file_name[], char option[], cha
         resolved_mode = mode_resolver(mode);
 
         if(resolved_mode != NULL){
+
             //needed strings to invoke verbal_permissions changer
             char *user_type = malloc(sizeof(char) * 1 + 1);
 
@@ -952,7 +955,7 @@ int verbal_permissions_changer_encapsulated(char file_name[], char option[], cha
             }
 
             //calls verbal permissions changer
-            return verbal_permission_changer(file_name, perms, action, user_type, option);
+            return verbal_permissions_changer(file_name, perms, action, user_type, option);
         }
         else{
             printf("Invalid mode given!\n");
@@ -965,6 +968,8 @@ int verbal_permissions_changer_encapsulated(char file_name[], char option[], cha
     }
 }
 
+//UNCOMMENT THE NEXT LINE AND THE RESPECTIVE CLOSER TO USE THE UTILS OTHER FILE
+/*
 int main()
 {
 	//test to verbal_to_octal converter
@@ -1026,7 +1031,7 @@ int main()
 
 	//test to mode resolver
 
-	char *res = mode_resolver("uwx");
+	char *res = mode_resolver("oooou-++---=wx");
 
 	printf("\n-------- TEST TO MODE RESOLVER ---------\n");
 
@@ -1034,7 +1039,7 @@ int main()
         printf("Not a valid mode!\n");
 	}
 	else{
-        printf("MODE: %s", res);
+        printf("MODE: %s\n\n", res);
 	}
 
 	//test verbal_to_octal_int
@@ -1061,5 +1066,11 @@ int main()
 
     printf("FILE AND DIR CHECKER TEST: %d\n", file_and_dir_checker("t.txt"));
 
+    //test to verbal_permissions_changer_encapsulated
+
+    printf("VERBAL PERMISSIONS CHANGER ENCAPSULATED TEST: %d\n", verbal_permissions_changer_encapsulated("t.txt", "--verbose", "oou=-rrx"));
+
 	return 0;
 }
+
+*/
