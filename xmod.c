@@ -19,7 +19,7 @@
 //
 //________________________________________________________________________
 
-#include "xmod_utils.c"
+#include "xmod_utils.h"
 
 int main(int argc, char *argv[]){
 

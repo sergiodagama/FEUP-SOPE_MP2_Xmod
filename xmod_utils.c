@@ -1,5 +1,5 @@
 /**
- * @file xmod.utils.c
+ * @file xmod_utils.c
  * @author N0il
  * @brief Set of functions used to make xmod program, all functions have their respective tests on the last section of code commented
  * @version 0.11
@@ -9,13 +9,7 @@
  * 
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <sys/types.h>
+#include "xmod_utils.h"
 
 /**
  * @brief Converts string with file all permissions in verbal mode to octal mode
