@@ -20,8 +20,29 @@
 //status: solved!
 //________________________________________________________________________
 
+//header files
+
+#include <unistd.h>
+#include <signal.h>
 #include "xmod_utils.h"
-#include "xmod_signals.h"
+
+//--------------GLOBAL VARIABLES IN ORDER TO HANDLE SIGNALS---------------
+
+int current_pid;
+char *current_file_name;
+int nftot = 0; 
+int nfmod = 0;
+
+//-----------------------END OF GLOBAL VARIABLES--------------------------
+
+/**
+ * @brief Function to handle the interrupt signal in xmod program
+ * 
+ * @param signal the signal to be handled
+ */
+void handle_sigint(int signal){
+    printf("\n%d\t %s\t %d\t %d\t \n", current_pid, current_file_name, nftot, nfmod);
+}
 
 /**
  * @brief main xmod function
@@ -45,13 +66,19 @@ void xmod(int argc, char *argv[]){
             else{
                 verbal_permissions_changer_encapsulated(argv[3], argv[1], argv[2]);
             }
+
+            current_file_name = argv[3];  //assigning global variables to handle signals
         }
         //octal mode given, but with no option
         else if(octal_checker(argv[1])){
             octal_permissions_changer(argv[2], argv[1]);
+
+            current_file_name = argv[2];
         }
         //last case, verbal mode given, but without options
         else{ 
+            current_file_name = argv[2];
+
             if(verbal_permissions_changer_encapsulated(argv[2], "", argv[1]) == -1){
                 printf("Invalid or missing operands!\n");
             }  
@@ -59,20 +86,22 @@ void xmod(int argc, char *argv[]){
     }
 }
 
-#include <unistd.h>
-
 int main(int argc, char *argv[]){
-    
+
+    bool not_recursive = true;
+
+    current_pid = getpid();
+
     if(argc > 2){ //to avoid segmentation error, when testing argv[1]
         //recursive option 
         if(strcmp(argv[1], "-R") == 0){
+            not_recursive = false;
             //TODO
         }
-        //aall the other options
-        else{
-            xmod(argc, argv);
-        }
     }
+
+    //all the other options
+    if(not_recursive) xmod(argc, argv);
 
     //handle interrupt signal
     signal(SIGINT, handle_sigint);
@@ -80,7 +109,8 @@ int main(int argc, char *argv[]){
     int n = 0;
 
     while(n < 10){
-        sleep(2);
+        sleep(1);
+        n++;
     }
 
     return 0;
