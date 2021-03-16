@@ -2,7 +2,7 @@
  * @file xmod.c
  * @author N0il
  * @brief Program that replicates the unix command chmod, also with chmod system calls
- * @version 0.12
+ * @version 1.12
  * @date 2021-03-15
  * 
  * @copyright Copyright (c) 2021
@@ -59,7 +59,7 @@ void xmod(int argc, char *argv[]){
     }
     else{
         //the case where options are used
-        if(strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--verbose") == 0 || strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--changes") == 0){  
+        if((strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--verbose") == 0 || strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--changes") == 0) && strcmp(argv[2], "-R") != 0){  
             //octal mode given, but with option
             if(octal_checker(argv[2])){
                 octal_permissions_changer_with_display(argv[3], argv[2], argv[1]);
@@ -69,6 +69,57 @@ void xmod(int argc, char *argv[]){
             }
 
             current_file_name = argv[3];  //assigning global variables to handle signals
+        }
+        //recursion
+        else if(strcmp(argv[1],"-R") == 0 || strcmp(argv[2], "-R") == 0){ //not very pretty, because of reapeting code, but it works to let the input '-R' option to change of place 
+            //when user inputs "-R" option first
+            if(strcmp(argv[1], "-R") == 0){
+                //the case where options are used
+                if(strcmp(argv[2], "-v") == 0 || strcmp(argv[2], "--verbose") == 0 || strcmp(argv[2], "-c") == 0 || strcmp(argv[2], "--changes") == 0){  
+                    //octal mode given, but with option
+                    if(octal_checker(argv[3])){
+                        octal_permissions_changer_with_display(argv[4], argv[3], argv[2]);
+                    }
+                    else{
+                        verbal_permissions_changer_encapsulated(argv[4], argv[2], argv[3]);
+                    }
+
+                    current_file_name = argv[4];  //assigning global variables to handle signals
+
+                }
+                //octal mode given, but with no option
+                else if(octal_checker(argv[2])){
+                    octal_permissions_changer(argv[3], argv[2]);
+
+                    current_file_name = argv[3];
+                }
+                //last case, verbal mode given, but without options
+                else{ 
+                    current_file_name = argv[3];
+
+                    if(verbal_permissions_changer_encapsulated(argv[3], "", argv[2]) == -1){
+                        printf("invalid or missing operands!\n");
+                    }  
+                }
+            }
+            //when user inputs "-R" option second is obeyed to have a valid option previous, else missing operands
+            if(strcmp(argv[2], "-R") == 0){
+                //the case where options are used
+                if(strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--verbose") == 0 || strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--changes") == 0){  
+                    //octal mode given, but with option
+                    if(octal_checker(argv[3])){
+                        octal_permissions_changer_with_display(argv[4], argv[3], argv[1]);
+                    }
+                    else{
+                        verbal_permissions_changer_encapsulated(argv[4], argv[1], argv[3]);
+                    }
+
+                    current_file_name = argv[4];  //assigning global variables to handle signals
+                }
+                else{
+                    printf("invalid or missing operands!\n");
+                }
+            }
         }
         //octal mode given, but with no option
         else if(octal_checker(argv[1])){
@@ -101,9 +152,9 @@ void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath)
 
     DIR *dir = opendir(basePath);
 
-   
-    if (!dir)
+    if (!dir){
         return;
+    }
 
     while ((dp = readdir(dir)) != NULL)
     {
@@ -114,17 +165,9 @@ void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath)
             strcat(path, "/");
             strcat(path, dp->d_name);
 
-            if(argc == 3){
-                argv[2] = basePath;
-            }
-            else if(argc == 4){
-                argv[3] == basePath;
-            }
-            else{
-                printf("ERROR: recursion error\n");
-            }
+            argv[4] = path;
 
-            //xmod(argc, argv);
+            xmod(argc, argv);
 
             xmod_recursion_encapsulator(argc, argv, path);
         }
@@ -148,11 +191,11 @@ int main(int argc, char *argv[]){
 
     if(argc > 2){ //to avoid segmentation error, when testing argv[1]
         //recursive option 
-        if(strcmp(argv[1], "-R") == 0){
+        if(strcmp(argv[1], "-R") == 0 || strcmp(argv[2], "-R") == 0){
 
             not_recursive = false;
 
-            xmod_recursion_encapsulator(argc, argv, NULL);
+            xmod_recursion_encapsulator(argc, argv, argv[4]);
         }
     }
 
@@ -165,7 +208,7 @@ int main(int argc, char *argv[]){
     int n = 0;
 
     while(n < 10){
-        sleep(1);
+        //sleep(1);
         n++;
     }
 
