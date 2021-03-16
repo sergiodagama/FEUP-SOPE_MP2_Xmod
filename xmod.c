@@ -30,8 +30,8 @@
 
 int current_pid;
 char *current_file_name;
-int nftot = 0; 
-int nfmod = 0;
+int nftot = 0; // alter verbal output etc to return this values
+int nfmod = 0; //etc etc
 
 //-----------------------END OF GLOBAL VARIABLES--------------------------
 
