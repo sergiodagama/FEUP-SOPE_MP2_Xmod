@@ -23,7 +23,13 @@
 #include "xmod_utils.h"
 #include "xmod_signals.h"
 
-void xmod(int argc, char argv[]){
+/**
+ * @brief main xmod function
+ * 
+ * @param argc the number of arguments
+ * @param argv the arguments
+ */
+void xmod(int argc, char *argv[]){
 
     if(argc < 3)  //minimum of two arguments the mode, file_name and the xmod.out, wich is considered an argument
     { 
@@ -56,13 +62,16 @@ void xmod(int argc, char argv[]){
 #include <unistd.h>
 
 int main(int argc, char *argv[]){
-
-    //recursive option 
-    if(strcmp(argv[1], "-R") == 0){
-        //TODO
-    }
-    else{
-        xmod(argc, argv);
+    
+    if(argc > 2){ //to avoid segmentation error, when testing argv[1]
+        //recursive option 
+        if(strcmp(argv[1], "-R") == 0){
+            //TODO
+        }
+        //aall the other options
+        else{
+            xmod(argc, argv);
+        }
     }
 
     //handle interrupt signal
