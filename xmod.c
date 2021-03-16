@@ -133,6 +133,13 @@ void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath)
     closedir(dir);
 }
 
+/**
+ * @brief main function of xmod program
+ * 
+ * @param argc number of arguments inputted
+ * @param argv main arguments inputted
+ * @return 0 if no erros, else otherwise
+ */
 int main(int argc, char *argv[]){
 
     bool not_recursive = true;
