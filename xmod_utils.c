@@ -664,14 +664,86 @@ int verbal_permissions_changer(char file_name[], char verbals[], char action[], 
     int display = 0;
 
     //mode 'a'
-    if(strlen(verbals) == 9 && strcmp(user_type, "a") == 0){ //when it is suppose to change all the premissions
-    
-        if(file_equal_permission_all(file_name, verbal_to_octal(verbals), true)){
-            display = 1;
+    if(strcmp(user_type, "a") == 0){ 
+        if(strcmp(action, "+") == 0){
+            if(one_perm_in("r", verbals, 0)){
+                perms_array[0] = 'r';
+                perms_array[3] = 'r';
+                perms_array[6] = 'r';
+            }
+            if(one_perm_in("w", verbals, 0)){
+                perms_array[1] = 'w';
+                perms_array[4] = 'w';
+                perms_array[7] = 'w';
+            }
+            if(one_perm_in("x", verbals, 0)){
+                perms_array[2] = 'x';
+                perms_array[5] = 'x';
+                perms_array[8] = 'x';
+            }
+        }
+        else if(strcmp(action, "-") == 0){
+            if(one_perm_in("r", verbals, 0)){
+                perms_array[0] = '-';
+                perms_array[3] = '-';
+                perms_array[6] = '-';
+            }
+            if(one_perm_in("w", verbals, 0)){
+                perms_array[1] = '-';
+                perms_array[4] = '-';
+                perms_array[7] = '-';
+            }
+            if(one_perm_in("x", verbals, 0)){
+                perms_array[2] = '-';
+                perms_array[5] = '-';
+                perms_array[8] = '-';
+            }
+        }
+        else if(strcmp(action, "=") == 0){
+            if(one_perm_in("r", verbals, 0)){
+                perms_array[0] = 'r';
+                perms_array[3] = 'r';
+                perms_array[6] = 'r';
+            }
+            else{
+                perms_array[0] = '-';
+                perms_array[3] = '-';
+                perms_array[6] = '-';
+            }
+            if(one_perm_in("w", verbals, 0)){
+                perms_array[1] = 'w';
+                perms_array[4] = 'w';
+                perms_array[7] = 'w';
+            }
+            else{
+                perms_array[1] = '-';
+                perms_array[4] = '-';
+                perms_array[7] = '-';  
+            }
+            if(one_perm_in("x", verbals, 0)){
+                perms_array[2] = 'x';
+                perms_array[5] = 'x';
+                perms_array[8] = 'x';
+            }
+            else{
+                perms_array[2] = '-';
+                perms_array[5] = '-';
+                perms_array[8] = '-'; 
+            }
         }
         else{
-            octal_permissions_changer(file_name, verbal_to_octal(verbals));
-            display = 2;
+            printf("ERROR: mode 'a'\n");
+            res = -1;
+        }
+
+        if(res == 0){
+            if(file_equal_permission_all(file_name, verbal_to_octal(perms_array), true)){
+                display = 1;
+            }
+            else{
+                octal_permissions_changer(file_name, verbal_to_octal(perms_array));
+                display = 2;
+            }
         }
     }
     else{
