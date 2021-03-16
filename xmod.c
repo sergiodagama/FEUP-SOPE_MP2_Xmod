@@ -21,6 +21,7 @@
 //________________________________________________________________________
 
 #include "xmod_utils.h"
+#include "xmod_signals.h"
 
 void xmod(int argc, char argv[]){
 
@@ -52,6 +53,8 @@ void xmod(int argc, char argv[]){
     }
 }
 
+#include <unistd.h>
+
 int main(int argc, char *argv[]){
 
     //recursive option 
@@ -60,6 +63,15 @@ int main(int argc, char *argv[]){
     }
     else{
         xmod(argc, argv);
+    }
+
+    //handle interrupt signal
+    signal(SIGINT, handle_sigint);
+
+    int n = 0;
+
+    while(n < 10){
+        sleep(2);
     }
 
     return 0;
