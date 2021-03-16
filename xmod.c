@@ -14,7 +14,7 @@
 //                        ATTENTION BUG REPORTS:
 //
 //-> found bug in mode a+rwx when already has rwxrwxrwx it adds rwx------
-//status: to be solved
+//status: solved!
 //
 //-> found bug in commands of type xmod (-v/-c/etc) 777 file
 //status: solved!
@@ -22,7 +22,7 @@
 
 #include "xmod_utils.h"
 
-int main(int argc, char *argv[]){
+void xmod(int argc, char argv[]){
 
     if(argc < 3)  //minimum of two arguments the mode, file_name and the xmod.out, wich is considered an argument
     { 
@@ -39,10 +39,6 @@ int main(int argc, char *argv[]){
                 verbal_permissions_changer_encapsulated(argv[3], argv[1], argv[2]);
             }
         }
-        //recursive option 
-        else if(strcmp(argv[1], "-R") == 0){
-            //TODO
-        }
         //octal mode given, but with no option
         else if(octal_checker(argv[1])){
             octal_permissions_changer(argv[2], argv[1]);
@@ -53,6 +49,17 @@ int main(int argc, char *argv[]){
                 printf("Invalid or missing operands!\n");
             }  
         }
+    }
+}
+
+int main(int argc, char *argv[]){
+
+    //recursive option 
+    if(strcmp(argv[1], "-R") == 0){
+        //TODO
+    }
+    else{
+        xmod(argc, argv);
     }
 
     return 0;

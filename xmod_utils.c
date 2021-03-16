@@ -2,7 +2,7 @@
  * @file xmod_utils.c
  * @author N0il
  * @brief Set of functions used to make xmod program, all functions have their respective tests on the last section of code commented
- * @version 0.11
+ * @version 0.21
  * @date 2021-03-15
  * 
  * @copyright Copyright (c) 2021
