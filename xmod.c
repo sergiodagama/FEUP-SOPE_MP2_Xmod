@@ -24,6 +24,7 @@
 
 #include <unistd.h>
 #include <signal.h>
+#include <dirent.h>
 #include "xmod_utils.h"
 
 //--------------GLOBAL VARIABLES IN ORDER TO HANDLE SIGNALS---------------
@@ -86,6 +87,52 @@ void xmod(int argc, char *argv[]){
     }
 }
 
+/**
+ * @brief xmod recursive encapsulator function
+ *
+ * @param argc the number of arguments
+ * @param argv the arguments
+ * @param basePath the base path, or file, where the function is going to be called
+ */
+void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath)
+{
+    char path[1000];
+    struct dirent *dp;
+
+    DIR *dir = opendir(basePath);
+
+   
+    if (!dir)
+        return;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+        {
+            printf("%s\n", dp->d_name);
+            strcpy(path, basePath);
+            strcat(path, "/");
+            strcat(path, dp->d_name);
+
+            if(argc == 3){
+                argv[2] = basePath;
+            }
+            else if(argc == 4){
+                argv[3] == basePath;
+            }
+            else{
+                printf("ERROR: recursion error\n");
+            }
+
+            //xmod(argc, argv);
+
+            xmod_recursion_encapsulator(argc, argv, path);
+        }
+    }
+
+    closedir(dir);
+}
+
 int main(int argc, char *argv[]){
 
     bool not_recursive = true;
@@ -95,8 +142,10 @@ int main(int argc, char *argv[]){
     if(argc > 2){ //to avoid segmentation error, when testing argv[1]
         //recursive option 
         if(strcmp(argv[1], "-R") == 0){
+
             not_recursive = false;
-            //TODO
+
+            xmod_recursion_encapsulator(argc, argv, NULL);
         }
     }
 
