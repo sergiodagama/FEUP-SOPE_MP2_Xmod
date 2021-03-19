@@ -212,36 +212,52 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
 
             current_file_name = basePath; //update current file name to handling signal
 
-            strcpy(path, basePath);
-            strcat(path, "/");
-            strcat(path, dp->d_name);
+            if(dp->d_type == DT_DIR){ //if path is directory
 
-            if(file_position == 4) argv[4] = path;
-            else if(file_position == 3) argv[3] = path;
-            else printf("ERROR: file postion error\n");
+                pid = fork();
 
-            nfmod += xmod(argc, argv);  //updates number of files modified
+                switch (pid){
+                    case -1:{
+                        perror("ERROR: fork error\n");
+                        exit(1);
+                    }
+                    case 0:{
+                        strcpy(path, basePath);
+                        strcat(path, "/");
+                        strcat(path, dp->d_name);
 
-            pid = fork();
+                        if(file_position == 4) argv[4] = path;
+                        else if(file_position == 3) argv[3] = path;
+                        else printf("ERROR: file postion error\n");
 
-            switch (pid){
-                case -1:{
-                    perror("ERROR: fork error\n");
-                    exit(1);
-                }
-                case 0:{
-                    xmod_recursion(argc, argv, path, file_position);
-                    
-                    exit(0);
-    
-                    break;
-                }
-                default:{
-                    pid = wait(&st);
+                        nfmod += xmod(argc, argv);  //updates number of files modified
 
-                    break;
-                }
-            }     
+                        xmod_recursion(argc, argv, path, file_position);
+                        
+                        exit(0);
+        
+                        break;
+                    }
+                    default:{
+                        pid = wait(&st);
+
+                        break;
+                    }
+                }  
+            }
+            else if(de->d_type == DT_REG){
+                strcpy(path, basePath);
+                strcat(path, "/");
+                strcat(path, dp->d_name);
+
+                if(file_position == 4) argv[4] = path;
+                else if(file_position == 3) argv[3] = path;
+                else printf("ERROR: file postion error\n");
+
+                nfmod += xmod(argc, argv);  //updates number of files modified
+
+                xmod_recursion(argc, argv, path, file_position);
+            }   
         }
     }
 
