@@ -26,6 +26,7 @@
 #include <signal.h>
 #include <dirent.h>
 #include <sys/wait.h>
+#include <sys/mman.h>
 #include "xmod_utils.h"
 
 //--------------GLOBAL VARIABLES IN ORDER TO HANDLE SIGNALS---------------
@@ -34,6 +35,7 @@ int current_pid;
 char *current_file_name;
 int nftot = 0; //number of total fils
 int nfmod = 0; //number of files modified
+
 
 //-----------------------END OF GLOBAL VARIABLES--------------------------
 
@@ -204,6 +206,8 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
     {
         nftot++; //updates number of files modified
 
+        printf("DEBUGGINGGG: %d\n",nfmod);
+
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
             //sleep(1);
@@ -212,42 +216,69 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
 
             current_file_name = basePath; //update current file name to handling signal
 
-            strcpy(path, basePath);
-            strcat(path, "/");
-            strcat(path, dp->d_name);
+            if(dp->d_type == DT_DIR){ //if path is directory
 
-            if(file_position == 4) argv[4] = path;
-            else if(file_position == 3) argv[3] = path;
-            else printf("ERROR: file postion error\n");
+                pid = fork();
 
-            nfmod += xmod(argc, argv);  //updates number of files modified
+                switch (pid){
+                    case -1:{
+                        perror("ERROR: fork error\n");
+                        exit(1);
+                    }
+                    case 0:{
+                        strcpy(path, basePath);
+                        strcat(path, "/");
+                        strcat(path, dp->d_name);
 
-            pid = fork();
+                        if(file_position == 4) argv[4] = path;
+                        else if(file_position == 3) argv[3] = path;
+                        else printf("ERROR: file postion error\n");
 
-            switch (pid){
-                case -1:{
-                    perror("ERROR: fork error\n");
-                    exit(1);
-                }
-                case 0:{
-                    xmod_recursion(argc, argv, path, file_position);
-                    
-                    exit(0);
-    
-                    break;
-                }
-                default:{
-                    pid = wait(&st);
+                        int debug = xmod(argc, argv);
 
-                    //printf("here");
+                        printf("DEBUG DIR: %d\n", debug); 
 
-                    break;
-                }
-            }     
+                        nfmod += debug;  //updates number of files modified
+
+                        execvp("./xmod", argv);
+                        //xmod_recursion(argc, argv, path, file_position);
+                        
+                        exit(0);
+        
+                        break;
+                    }
+                    default:{
+                        
+                        pid = wait(&st);
+
+                        break;
+                    }
+                }  
+            }
+            else if(dp->d_type == DT_REG){
+                strcpy(path, basePath);
+                strcat(path, "/");
+                strcat(path, dp->d_name);
+
+                if(file_position == 4) argv[4] = path;
+                else if(file_position == 3) argv[3] = path;
+                else printf("ERROR: file postion error\n");
+
+                int debug = xmod(argc, argv); 
+
+                printf("DEBUG REG: %d\n",debug);
+
+                nfmod += debug;  //updates number of files modified
+
+                //*nfmod_ptr += debug;
+                xmod_recursion(argc, argv, path, file_position);
+            }   
         }
     }
 
     closedir(dir);
+
+    printf("NFMOD: %d\n", nfmod);
 }
 
 /**
@@ -262,7 +293,12 @@ void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath, int fil
     //code for first path
     if(file_and_dir_checker(basePath)){
         nftot++;
-        nfmod += xmod(argc, argv);
+
+        int debug = xmod(argc, argv);
+
+        printf("DEBUG FIRST: %d\n", debug);
+        
+        nfmod += debug;
     }
 
     xmod_recursion(argc, argv, basePath, file_position);
@@ -313,7 +349,7 @@ int main(int argc, char *argv[]){
 
     //all the other options
     if(not_recursive){
-        nfmod += xmod(argc, argv);
+        //nfmod += xmod(argc, argv);
     }
 
     //DEBUGGING PURPOSE
