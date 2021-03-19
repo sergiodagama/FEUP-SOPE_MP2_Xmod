@@ -12,16 +12,21 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 #include "xmod_utils.h"
+#include "xmod_log.h"
 
-//--------------GLOBAL VARIABLES IN ORDER TO HANDLE SIGNALS---------------
+//--------------------GLOBAL VARIABLES IN ORDER TO HANDLE SIGNALS---------------------
 
 int current_pid;  //current process id
 char *current_file_name;  //current file name being treated
 int nftot; //number of total fils
 int nfmod; //number of files modified
 clock_t start_time, end_time; //running start time of program 
+bool active_log_file = false; //states if the environment variable is active or not
+char *env_var; //environment variable
+extern char* old_perms_global;
+extern char* new_perms_global;
 
-//-----------------------END OF GLOBAL VARIABLES--------------------------
+//-----------------------------END OF GLOBAL VARIABLES--------------------------------
 
 /**
  * @brief Function to handle the interrupt signal in xmod program
@@ -29,22 +34,12 @@ clock_t start_time, end_time; //running start time of program
  * @param signal the signal to be handled
  */
 void handle_sigint(int signal){
-    end_time = clock();
-    write_to_log(current_pid, current_file_name, SIGNAL_RECV, (double) (end_time - start_time) / 1000);
+    if(active_log_file){
+        end_time = clock();
+        signal_recv((double) (end_time - start_time) / 1000, signal, current_pid, env_var);
+    }
 
     printf("\n%d\t %s\t %d\t %d\t \n", current_pid, current_file_name, nftot, nfmod);
-}
-
-/**
- * @brief 
- * 
- * @param pid current process id
- * @param info additional info passed to log
- * @param event envent that occurred
- * @param time time passed util that point
- */
-void write_to_log(int pid, char info[], char event, double time){
-
 }
 
 /**
@@ -76,7 +71,7 @@ int xmod(int argc, char *argv[]){
                 //the case where options are used
                 if(strcmp(argv[2], "-v") == 0 || strcmp(argv[2], "--verbose") == 0 || strcmp(argv[2], "-c") == 0 || strcmp(argv[2], "--changes") == 0){  
                     current_file_name = argv[4];  //assigning global variables to handle signals
-    
+
                     //octal mode given, but with option
                    modified = octal_permissions_changer_with_display(argv[4], argv[3], argv[2]);
                 }
@@ -97,8 +92,10 @@ int xmod(int argc, char *argv[]){
     }
 
     if(modified){
-        end_time = clock();
-        write_to_log(current_pid, current_file_name, FILE_MODF, (double) (end_time - start_time) / 1000);
+        if(active_log_file){
+            end_time = clock();
+            file_modf((double) (end_time - start_time) / 1000, old_perms_global, new_perms_global, env_var, current_pid, current_file_name);
+        }
     }
 
     return modified;
@@ -208,8 +205,10 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
                     }
                     case 0:{
                         //creates child process 
-                        end_time = clock();
-                        write_to_log(current_pid, current_file_name, PROC_CREAT, (double) (end_time - start_time) / 1000);
+                        if(active_log_file){
+                            end_time = clock();
+                            prog_create((double) (end_time - start_time) / 1000, current_pid, argv , argc, env_var);
+                        }
 
                         strcpy(path, basePath);
                         strcat(path, "/");
@@ -220,24 +219,31 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
                         else printf("ERROR: file position error\n");
 
                         xmod(argc, argv);
+
                         //execvp("./xmod", argv);
                         xmod_recursion(argc, argv, path, file_position);
 
                         //ends child process
-                        end_time = clock();
-                        write_to_log(current_pid, current_file_name, PROC_EXIT, (double) (end_time - start_time) / 1000);
+                        if(active_log_file){
+                            end_time = clock();
+                            send_proc_exit((double) (end_time - start_time) / 1000, 0, current_pid, env_var);
+                        }
                         exit(0);
                         break;
                     }
                     default:{
                         //parent process
-                        end_time = clock();
-                        write_to_log(current_pid, current_file_name, PROC_CREAT, (double) (end_time - start_time) / 1000);
+                        if(active_log_file){
+                            end_time = clock();
+                            prog_create((double) (end_time - start_time) / 1000, current_pid, argv , argc, env_var);
+                        }
                         
                         pid = wait(&st);
 
-                        end_time = clock();
-                        write_to_log(current_pid, current_file_name, PROC_EXIT, (double) (end_time - start_time) / 1000);
+                        if(active_log_file){
+                            end_time = clock();
+                            send_proc_exit((double) (end_time - start_time) / 1000, 0, current_pid, env_var);
+                        }
                         break;
                     }
                 }  
@@ -272,9 +278,11 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
  * @param file_position the position of the file name in the string array
  */
 void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath, int file_position){
-    //create parent process
-    end_time = clock();
-    write_to_log(current_pid, current_file_name, PROC_CREAT, (double) (end_time - start_time) / 1000);
+    //first process
+    if(active_log_file){
+        end_time = clock();
+        prog_create((double) (end_time - start_time) / 1000, current_pid, argv , argc, env_var);
+    }
     
     //code for first path
     nftot++;
@@ -297,6 +305,21 @@ int main(int argc, char *argv[]){
 
     //init clock
     start_time = clock();
+
+    //checking environment variable
+    env_var = getenv("LOG_FILENAME");
+
+    if(check_envvar_set(env_var) != 1){
+        //printf("xmod: no LOGFILENAME\n");
+        active_log_file = true;
+    }
+
+    //create log file
+    if(active_log_file){
+        if(create_log_file(env_var) != 0){
+            return 0;
+        }
+    }
 
     //handle interrupt signal
     signal(SIGINT, handle_sigint);
@@ -349,8 +372,14 @@ int main(int argc, char *argv[]){
     }
 
     //DEBUGGING PURPOSE
-    printf("\nNFTOT: %d\n", nftot);
-    printf("NFMOD: %d\n", nfmod);
+    //printf("\nNFTOT: %d\n", nftot);
+    //printf("NFMOD: %d\n", nfmod);
+
+    //final process exit
+    if(active_log_file){
+        end_time = clock();
+        send_proc_exit((double) (end_time - start_time) / 1000, 0, current_pid, env_var);
+    }
 
     return 0;
 }

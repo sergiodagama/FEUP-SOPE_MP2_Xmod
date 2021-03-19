@@ -4,6 +4,7 @@
  * @copyright Copyright (c) 2021
  * 
  */
+#include "xmod_log.h"
 
 /**
  * @brief Check the existence of LOG_FILENAME as an environment variable
@@ -22,11 +23,12 @@ int check_envvar_set(const char* str){
  */
 int close_file(int file){
     if( close(file) < 0 ){
-        printf("xmod: cannot access the log file: ");
+        //printf("xmod: cannot access the log file: ");
         return 1;
     }
     return 0;
 }
+
 /**
  * @brief Create a file with the path indicated by LOG_FILENAME environmental variable
  * @param str - LOG_FILENAME value
@@ -36,7 +38,7 @@ int create_log_file(char* str){
     int file = open(str, O_TRUNC | O_CREAT | O_APPEND, S_IRWXU);
     if( file == -1 )
     {
-        perror("xmod: cannot acess the log file: ");
+        printf("xmod: cannot acess the log file\n");
         return 1;
     }
     if(close_file(file) != 0) return 1;
@@ -85,7 +87,7 @@ int prog_create(double instant, int pid, char** argv , int argc, char* path){
     write(file,"PROC_CREAT",strlen("PROC_CREAT"));
 
     write(file, " ; ",3);
-    for(int i = 0; i < argc;i++){
+    for(int i = 1; i < argc;i++){
         write(file,argv[i],strlen(argv[i]));
         write(file, " ",1);
     }
@@ -143,8 +145,7 @@ int send_proc_exit(double instant, int exit_status, int pid, char* path){
 int signal_recv(double instant,int signal, int pid, char* path){
     int file = open_file(path);
     if(file == -1) return -1;
-    char str[50];
-    //get_sig_name(signal,str);
+    char *str = "SIGINT";
     double time_elapsed = instant;
     char output[50];
     snprintf(output, 50, "%f", time_elapsed);
@@ -170,7 +171,7 @@ int signal_recv(double instant,int signal, int pid, char* path){
  * @param open_path - LOG_FILENAME value
  * @return 0 upon success, 1 otherwise
  */
-int send_file_mode_change(int instant,char* oldPerms, char* newPerms,char* path, int pid, char* open_path){
+int file_modf(double instant,char* oldPerms, char* newPerms,char* path, int pid, char* open_path){
     int file = open_file(open_path);
     if(file == 1) return 1;
     double time_elapsed = instant;

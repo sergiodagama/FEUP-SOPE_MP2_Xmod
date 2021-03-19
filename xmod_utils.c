@@ -179,7 +179,7 @@ char* get_permissions(char *file_name){
 char* get_permissions_with_zero(char *file_name){
     struct stat st;
 
-    char *perms_octal = malloc(sizeof(char) * 3 + 1); //could be 5 or 4 ?
+    char *perms_octal = malloc(sizeof(char) * 4 + 1); //could be 5 or 4 ?
 
     if(stat(file_name, &st) == 0){
         mode_t permissions = st.st_mode;
@@ -525,19 +525,23 @@ bool octal_permissions_changer(char file_name[], char octals[]){
  * @return 1 if modified file, 0 otherwise
  */
  bool octal_permissions_changer_with_display(char file_name[], char octals[], char option[]){
-    char* old_file_permissions = malloc(sizeof(char) * 9 + 1);
+    
+    char* old_file_permissions = malloc(sizeof(char) * 3 + 1);
 
     old_file_permissions = get_permissions(file_name);
      
     if(strcmp(option, "-c") == 0 || strcmp(option, "--changes") == 0){
         if(octal_permissions_changer(file_name, octals)){
 
-            char* new_file_permissions = malloc(sizeof(char) * 9 + 1);
+            char* new_file_permissions = malloc(sizeof(char) * 3 + 1);
 
             new_file_permissions = get_permissions(file_name);
 
             if(!(strcmp(new_file_permissions, old_file_permissions) == 0)){ //only if the permissions have changed
                 message_displayer(false, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), new_file_permissions, octal_to_verbal(new_file_permissions));
+
+                free(new_file_permissions);
+                free(old_file_permissions);
                 return 1;
             }
         }
@@ -548,12 +552,15 @@ bool octal_permissions_changer(char file_name[], char octals[]){
     else if(strcmp(option, "-v") == 0 || strcmp(option, "--verbose") == 0){ 
          if(octal_permissions_changer(file_name, octals)){
              
-            char* new_file_permissions = malloc(sizeof(char) * 9 + 1);
+            char* new_file_permissions = malloc(sizeof(char) * 3 + 1);
 
             new_file_permissions = get_permissions(file_name);
 
             if(strcmp(new_file_permissions, old_file_permissions) == 0){
                 message_displayer(true, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), old_file_permissions, octal_to_verbal(old_file_permissions));
+
+                free(new_file_permissions);
+                free(old_file_permissions);
                 return 0;
             }else{
                 message_displayer(false, file_name, old_file_permissions, octal_to_verbal(old_file_permissions), new_file_permissions, octal_to_verbal(new_file_permissions));
@@ -859,6 +866,9 @@ int newfile_perms(int var, char** argv, int *argc, uint8_t *flag, char* perms, c
         printf("cannot access '%s': No such file or directory\n", argv[var]);  
         return 1;
     }
+
+    old_perms_global = perms; //atuallizing old perms
+
     //printf("File_Perms->%s\n",perms);
     uint8_t user_perms = 0x00, group_perms = 0x00, other_perms = 0x00;
     if( perms[0] == '0') {
@@ -883,12 +893,15 @@ int newfile_perms(int var, char** argv, int *argc, uint8_t *flag, char* perms, c
     /*
     printf("UserPerms_Updated->%01x\n",user_perms);
     printf("GroupPerms_Updated->%01x\n",group_perms);
-    printf("OtherPerms_Updated->%01x\n",other_perms);*/
+    printf("OtherPerms_Updated->%01x\n",other_perms); */
     char test_var[4];
     octal_converter(test_var, &user_perms,0);
     octal_converter(test_var, &group_perms,1);
     octal_converter(test_var, &other_perms,2);
     test_var[3] = '\0';
+
+    new_perms_global = test_var; //atuallizing new perms
+
     //printf("FinalPerms->%s\n",test_var);
     output_treatment(flag, argv, argc, (char *) test_var,argv[var]);
 

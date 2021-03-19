@@ -32,6 +32,6 @@ int send_proc_exit(double instant, int exit_status, int pid, char* path);
 
 int signal_recv(double instant,int signal, int pid, char* path);
 
-int send_file_mode_change(int instant,char* oldPerms, char* newPerms,char* path, int pid, char* open_path);
+int file_modf(double instant, char* oldPerms, char* newPerms, char* path, int pid, char* open_path);
 
 #endif //XMOD_LOG
