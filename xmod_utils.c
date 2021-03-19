@@ -174,6 +174,37 @@ char* get_permissions(char *file_name){
 }
 
 /**
+ * @brief Get the permissions from file and output in octal mode
+ *
+ * @param file_name the file to get the permissions from
+ * @return string with verbal mode permissions, or error in case of error
+ */
+char* get_permissions_with_zero(char *file_name){
+    struct stat st;
+
+    char *perms_octal = malloc(sizeof(char) * 3 + 1); //could be 5 or 4 ?
+
+    if(stat(file_name, &st) == 0){
+        mode_t permissions = st.st_mode;
+
+        int mask = 0777;
+
+        printf("perms: %o\n", permissions);
+
+        int perms = permissions & mask;
+
+        snprintf(perms_octal, sizeof(perms_octal), "0%o", perms);
+
+        
+
+        return perms_octal;
+    }
+    else{
+        return strerror(errno);
+    }
+}
+
+/**
  * @brief Accepts a string with all permissions and retrieves only the user ones
  *
  * @param permissions all the file permissions string
@@ -1629,7 +1660,9 @@ char * output_treatment(const uint8_t *flag, char **argv, int *argc, char *mode,
  * @return 0 in case of success and 1 otherwise
  */
 int newfile_perms(int var, char** argv, int *argc, uint8_t *flag, char* perms, char* mode){
-    if( file_and_dir_checker(argv[var]) ) perms = get_permissions(argv[var]);
+    printf("ARGVAR: %s\n", argv[var]);
+    printf("VAR: %d\n", var);
+    if( file_and_dir_checker(argv[var]) ) perms = get_permissions_with_zero(argv[var]);
     else return 1;
     printf("File_Perms->%s\n",perms);
     uint8_t user_perms = 0x00, group_perms = 0x00, other_perms = 0x00;
@@ -1703,13 +1736,17 @@ int getopt_flag_updater( uint8_t *flag, char **argv, int argc){
  * @param argc - argc
  * @return 0 upon success, 1 otherwise
  */
-int handler(uint8_t *flag, char **argv, int argc){
+int handler(uint8_t *flag, char *argv[], int *argc){
+
+    //in case of not enough args
+    if(*argc < 2) return 1;
+
     int index;
     char* mode = NULL;
-    int opt_index = getopt_flag_updater(flag, argv, argc);
+    int opt_index = getopt_flag_updater(flag, argv, *argc);
     printf("Verbose_flag = %d\nChange_flag = %d\nRecursive_flag = %d\n",*flag & BIT(0), *flag & BIT(1), *flag & BIT(2));
     bool mode_found = false, mode_octal = false;
-    for (index = opt_index; index < argc; index++) {
+    for (index = opt_index; index < *argc; index++) {
         if ( argv[index][0] != 'u' && argv[index][0] != 'g' && argv[index][0] != 'a' && argv[index][0] != 'o' && argv[index][0] != '0') continue;
         else{
             mode_found = true;
@@ -1730,16 +1767,16 @@ int handler(uint8_t *flag, char **argv, int argc){
     char *perms = NULL;
     if( !mode_octal ) {
         printf("Not octal\n");
-        if( newfile_perms(var, argv, &argc, flag, perms, mode) != 0 ) {
+        if( newfile_perms(var, argv, argc, flag, perms, mode) != 0 ) {
             printf("Error!\n");
             return 1;
         }
     }
     else{
         char *new_mode = mode + 1;
-        output_treatment(flag, argv, &argc, new_mode, argv[var]);
+        output_treatment(flag, argv, argc, new_mode, argv[var]);
     }
-    for( int i = 0; i < argc; i++){
+    for( int i = 0; i < *argc; i++){
         printf("ARGV[%d] = %s\n", i, argv[i]);
     }
     return 0;

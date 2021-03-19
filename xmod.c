@@ -22,7 +22,6 @@
 
 //header files
 
-#include <unistd.h>
 #include <signal.h>
 #include <dirent.h>
 #include <sys/wait.h>
@@ -65,6 +64,7 @@ int xmod(int argc, char *argv[]){
         //the case where options are used
         if((strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--verbose") == 0 || strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--changes") == 0) && strcmp(argv[2], "-R") != 0){  
             //octal mode given, but with option
+            printf("OCTALLLLLL %s", argv[2]);
             if(octal_checker(argv[2])){
                 return octal_permissions_changer_with_display(argv[3], argv[2], argv[1]);
             }
@@ -240,8 +240,8 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
 
                         nfmod += debug;  //updates number of files modified
 
-                        execvp("./xmod", argv);
-                        //xmod_recursion(argc, argv, path, file_position);
+                        //execvp("./xmod", argv);
+                        xmod_recursion(argc, argv, path, file_position);
                         
                         exit(0);
         
@@ -312,9 +312,19 @@ void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath, int fil
  * @return 0 if no erros, else otherwise
  */
 int main(int argc, char *argv[]){
-
     //handle interrupt signal
     signal(SIGINT, handle_sigint);
+
+    uint8_t flag = 0x00;
+    
+    if(handler(&flag, argv, &argc)){
+        printf("error on handler\n");
+        return 0;
+    }
+
+    for( int i = 0; i < argc; i++){
+        printf("MAIN ARGV[%d] = %s\n", i, argv[i]);
+    }
 
     bool not_recursive = true;
 
@@ -322,12 +332,13 @@ int main(int argc, char *argv[]){
 
     if(argc > 2){ //to avoid segmentation error, when testing argv[1]
         //recursive option 
-        if(strcmp(argv[1], "-R") == 0 || strcmp(argv[2], "-R") == 0){
+        if(strcmp(argv[1], "-R") == 0){
             
             char *path;
 
             not_recursive = false;
-            if(argc == 5){ //got to be change to number of args of the output from Rui
+            if(argc == 5){ 
+                
 
                 path = argv[4]; //DEBUGGIND PURPOSE TO USE tree
 
@@ -337,6 +348,7 @@ int main(int argc, char *argv[]){
                 print_tree_structure_encapsulator(path, 2);
             }
             else if (argc == 4){
+
                 path = argv[3]; //DEBUGGIND PURPOSE TO USE tree
 
                 xmod_recursion_encapsulator(argc, argv, argv[3], 3);
@@ -349,7 +361,7 @@ int main(int argc, char *argv[]){
 
     //all the other options
     if(not_recursive){
-        //nfmod += xmod(argc, argv);
+        nfmod += xmod(argc, argv);
     }
 
     //DEBUGGING PURPOSE

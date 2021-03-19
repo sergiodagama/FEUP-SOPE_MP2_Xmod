@@ -13,6 +13,8 @@
 #define XMOD_UTILS
 
 #include <stdio.h>
+#include <unistd.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -83,6 +85,8 @@ int newfile_perms(int var, char** argv, int *argc, uint8_t *flag, char* perms, c
 
 int getopt_flag_updater( uint8_t *flag, char **argv, int argc);
 
-int handler(uint8_t *flag, char **argv, int argc);
+int handler(uint8_t *flag, char *argv[], int *argc);
+
+char* get_permissions_with_zero(char *file_name);
 
 #endif //XMOD_UTILS
