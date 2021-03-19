@@ -20,6 +20,9 @@
 #include <errno.h>
 #include <sys/types.h>
 
+#define BIT(n)  ( 1 << (n) ) //Bit toggle
+#define BITC(n) ~(1 << (n) ) //Bit clear
+
 char* verbal_to_octal(char verbal[]);
 
 int verbal_to_octal_int(char verbal[]);
@@ -61,5 +64,25 @@ bool octal_permissions_changer_with_display(char file_name[], char octals[], cha
 int verbal_permissions_changer(char file_name[], char verbals[], char action[], char user_type[], char option[]);
 
 int verbal_permissions_changer_encapsulated(char file_name[], char option[], char mode[]);
+
+void equal_flag_updater(int bit, uint8_t equal_flag, uint8_t *user_perms, uint8_t *group_perms, uint8_t *other_perms);
+
+int perms_updater_handler(uint8_t *user_perms, uint8_t *group_perms , uint8_t *other_perms,const char *amb);
+
+int file_perm_convert(char macro,uint8_t *flag);
+
+int octal_converter(char result[4], const uint8_t *perms, int place);
+
+int mode_treatment(char *amb, uint8_t *flag);
+
+int perms_updater( const uint8_t *flag, uint8_t *user_perms, uint8_t *group_perms, uint8_t *other_perms, char* mode );
+
+char * output_treatment(const uint8_t *flag, char **argv, int *argc, char *mode, char* file_path);
+
+int newfile_perms(int var, char** argv, int *argc, uint8_t *flag, char* perms, char* mode);
+
+int getopt_flag_updater( uint8_t *flag, char **argv, int argc);
+
+int handler(uint8_t *flag, char **argv, int argc);
 
 #endif //XMOD_UTILS
