@@ -19,6 +19,7 @@ int current_pid;  //current process id
 char *current_file_name;  //current file name being treated
 int nftot; //number of total fils
 int nfmod; //number of files modified
+clock_t start_time, end_time; //running start time of program 
 
 //-----------------------END OF GLOBAL VARIABLES--------------------------
 
@@ -28,7 +29,22 @@ int nfmod; //number of files modified
  * @param signal the signal to be handled
  */
 void handle_sigint(int signal){
+    end_time = clock();
+    write_to_log(current_pid, current_file_name, SIGNAL_RECV, (double) (end_time - start_time) / 1000);
+
     printf("\n%d\t %s\t %d\t %d\t \n", current_pid, current_file_name, nftot, nfmod);
+}
+
+/**
+ * @brief 
+ * 
+ * @param pid current process id
+ * @param info additional info passed to log
+ * @param event envent that occurred
+ * @param time time passed util that point
+ */
+void write_to_log(int pid, char info[], char event, double time){
+
 }
 
 /**
@@ -39,6 +55,7 @@ void handle_sigint(int signal){
  * @return the number of files modified
  */
 int xmod(int argc, char *argv[]){
+    int modified = 0;
 
     if(argc < 3)  //minimum of two arguments the mode, file_name and the xmod.out, wich is considered an argument
     { 
@@ -50,7 +67,7 @@ int xmod(int argc, char *argv[]){
             current_file_name = argv[3];  //assigning global variables to handle signals
 
             //octal mode given, but with option
-            return octal_permissions_changer_with_display(argv[3], argv[2], argv[1]);
+            modified = octal_permissions_changer_with_display(argv[3], argv[2], argv[1]);
         }
         //recursion
         else if(strcmp(argv[1],"-R") == 0 || strcmp(argv[2], "-R") == 0){ 
@@ -59,27 +76,32 @@ int xmod(int argc, char *argv[]){
                 //the case where options are used
                 if(strcmp(argv[2], "-v") == 0 || strcmp(argv[2], "--verbose") == 0 || strcmp(argv[2], "-c") == 0 || strcmp(argv[2], "--changes") == 0){  
                     current_file_name = argv[4];  //assigning global variables to handle signals
-
+    
                     //octal mode given, but with option
-                    return octal_permissions_changer_with_display(argv[4], argv[3], argv[2]);
+                   modified = octal_permissions_changer_with_display(argv[4], argv[3], argv[2]);
                 }
                 //octal mode given, but with no option
                 else{
                     current_file_name = argv[3];
                     
-                    return octal_permissions_changer_with_display(argv[3], argv[2], "-n");
+                    modified = octal_permissions_changer_with_display(argv[3], argv[2], "-n");
                 }
             }
         }
         //octal mode given, but with no options
         else{
-            return octal_permissions_changer_with_display(argv[2], argv[1], "-n");
-
             current_file_name = argv[2];
+
+            modified = octal_permissions_changer_with_display(argv[2], argv[1], "-n");
         }
     }
 
-    return 0;
+    if(modified){
+        end_time = clock();
+        write_to_log(current_pid, current_file_name, FILE_MODF, (double) (end_time - start_time) / 1000);
+    }
+
+    return modified;
 }
 
 /**
@@ -154,6 +176,9 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
     struct dirent *dp;
     int st;
     int i = 0, pid;
+    char *command;
+
+
 
     DIR *dir = opendir(basePath);
 
@@ -164,13 +189,13 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
 
     while ((dp = readdir(dir)) != NULL) //reads next element of directory stream
     {
-        nftot++; //updates number of files modified
+        nftot++; //updates number of total files
 
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
             current_pid = getpid(); //updated current process id to handling signal
 
-            current_file_name = basePath; //update current file name to handling signal
+            //current_file_name = basePath; //update current file name to handling signal
 
             if(dp->d_type == DT_DIR){ //if path is directory
 
@@ -182,6 +207,10 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
                         exit(1);
                     }
                     case 0:{
+                        //creates child process 
+                        end_time = clock();
+                        write_to_log(current_pid, current_file_name, PROC_CREAT, (double) (end_time - start_time) / 1000);
+
                         strcpy(path, basePath);
                         strcat(path, "/");
                         strcat(path, dp->d_name);
@@ -193,13 +222,22 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
                         xmod(argc, argv);
                         //execvp("./xmod", argv);
                         xmod_recursion(argc, argv, path, file_position);
-                        
+
+                        //ends child process
+                        end_time = clock();
+                        write_to_log(current_pid, current_file_name, PROC_EXIT, (double) (end_time - start_time) / 1000);
                         exit(0);
                         break;
                     }
                     default:{
+                        //parent process
+                        end_time = clock();
+                        write_to_log(current_pid, current_file_name, PROC_CREAT, (double) (end_time - start_time) / 1000);
                         
                         pid = wait(&st);
+
+                        end_time = clock();
+                        write_to_log(current_pid, current_file_name, PROC_EXIT, (double) (end_time - start_time) / 1000);
                         break;
                     }
                 }  
@@ -234,6 +272,9 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
  * @param file_position the position of the file name in the string array
  */
 void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath, int file_position){
+    //create parent process
+    end_time = clock();
+    write_to_log(current_pid, current_file_name, PROC_CREAT, (double) (end_time - start_time) / 1000);
     
     //code for first path
     nftot++;
@@ -253,6 +294,10 @@ void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath, int fil
  * @return 0 if no erros, else otherwise
  */
 int main(int argc, char *argv[]){
+
+    //init clock
+    start_time = clock();
+
     //handle interrupt signal
     signal(SIGINT, handle_sigint);
 

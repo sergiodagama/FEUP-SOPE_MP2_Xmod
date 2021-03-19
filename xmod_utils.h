@@ -21,6 +21,13 @@
 #define BIT(n)  ( 1 << (n) ) //Bit toggle
 #define BITC(n) ~(1 << (n) ) //Bit clear
 
+//log file
+#define FILE_MODF "FILE_MODF"
+#define PROC_CREAT "PROC_CREAT"
+#define PROC_EXIT "PROC_EXIT"
+#define SIGNAL_RECV "SIGNAL_RECV"
+#define SIGNAL_SENT "SIGNAL_SENT"
+
 char* verbal_to_octal(char verbal[]);
 
 int verbal_to_octal_int(char verbal[]);
