@@ -202,11 +202,11 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
 
     while ((dp = readdir(dir)) != NULL) //reads next element of directory stream
     {
+        nftot++; //updates number of files modified
+
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
-            sleep(1);
-
-            nftot++; //updates number of files modified
+            //sleep(1);
 
             current_pid = getpid(); //updated current process id to handling signal
 
@@ -238,6 +238,8 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
                 }
                 default:{
                     pid = wait(&st);
+
+                    //printf("here");
 
                     break;
                 }
