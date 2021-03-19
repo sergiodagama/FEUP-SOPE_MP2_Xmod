@@ -1,27 +1,12 @@
 /**
  * @file xmod.c
- * @author N0il
  * @brief Program that replicates the unix command chmod, also with chmod system calls
- * @version 1.12
- * @date 2021-03-15
- * 
  * @copyright Copyright (c) 2021
  * 
  */
 
-//________________________________________________________________________
-//
-//                        ATTENTION BUG REPORTS:
-//
-//-> found bug in mode a+rwx when already has rwxrwxrwx it adds rwx------
-//status: solved!
-//
-//-> found bug in commands of type xmod (-v/-c/etc) 777 file
-//status: solved!
-//________________________________________________________________________
-
 //header files
-
+#include <time.h>
 #include <signal.h>
 #include <dirent.h>
 #include <sys/wait.h>
@@ -30,11 +15,10 @@
 
 //--------------GLOBAL VARIABLES IN ORDER TO HANDLE SIGNALS---------------
 
-int current_pid;
-char *current_file_name;
-int nftot = 0; //number of total fils
-int nfmod = 0; //number of files modified
-
+int current_pid;  //current process id
+char *current_file_name;  //current file name being treated
+int nftot; //number of total fils
+int nfmod; //number of files modified
 
 //-----------------------END OF GLOBAL VARIABLES--------------------------
 
@@ -58,21 +42,15 @@ int xmod(int argc, char *argv[]){
 
     if(argc < 3)  //minimum of two arguments the mode, file_name and the xmod.out, wich is considered an argument
     { 
-        printf("missing operands\n");
+        printf("xmod: missing operand\n");
     }
     else{
         //the case where options are used
         if((strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--verbose") == 0 || strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--changes") == 0) && strcmp(argv[2], "-R") != 0){  
-            //octal mode given, but with option
-            printf("OCTALLLLLL %s", argv[2]);
-            if(octal_checker(argv[2])){
-                return octal_permissions_changer_with_display(argv[3], argv[2], argv[1]);
-            }
-            else{
-                return verbal_permissions_changer_encapsulated(argv[3], argv[1], argv[2]);
-            }
-
             current_file_name = argv[3];  //assigning global variables to handle signals
+
+            //octal mode given, but with option
+            return octal_permissions_changer_with_display(argv[3], argv[2], argv[1]);
         }
         //recursion
         else if(strcmp(argv[1],"-R") == 0 || strcmp(argv[2], "-R") == 0){ 
@@ -80,42 +58,24 @@ int xmod(int argc, char *argv[]){
             if(strcmp(argv[1], "-R") == 0){
                 //the case where options are used
                 if(strcmp(argv[2], "-v") == 0 || strcmp(argv[2], "--verbose") == 0 || strcmp(argv[2], "-c") == 0 || strcmp(argv[2], "--changes") == 0){  
-                    //octal mode given, but with option
-                    if(octal_checker(argv[3])){
-                        return octal_permissions_changer_with_display(argv[4], argv[3], argv[2]);
-                    }
-                    else{
-                        return verbal_permissions_changer_encapsulated(argv[4], argv[2], argv[3]);
-                    }
-
                     current_file_name = argv[4];  //assigning global variables to handle signals
 
+                    //octal mode given, but with option
+                    return octal_permissions_changer_with_display(argv[4], argv[3], argv[2]);
                 }
                 //octal mode given, but with no option
-                else if(octal_checker(argv[2])){
-                    return octal_permissions_changer(argv[3], argv[2]);
-
+                else{
                     current_file_name = argv[3];
-                }
-                //last case, verbal mode given, but without options
-                else{ 
-                    current_file_name = argv[3];
-
-                    return verbal_permissions_changer_encapsulated(argv[3], "", argv[2]);
+                    
+                    return octal_permissions_changer_with_display(argv[3], argv[2], "-n");
                 }
             }
         }
-        //octal mode given, but with no option
-        else if(octal_checker(argv[1])){
-            return octal_permissions_changer(argv[2], argv[1]);
+        //octal mode given, but with no options
+        else{
+            return octal_permissions_changer_with_display(argv[2], argv[1], "-n");
 
             current_file_name = argv[2];
-        }
-        //last case, verbal mode given, but without options
-        else{ 
-            current_file_name = argv[2];
-
-            return verbal_permissions_changer_encapsulated(argv[2], "", argv[1]);
         }
     }
 
@@ -206,12 +166,8 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
     {
         nftot++; //updates number of files modified
 
-        printf("DEBUGGINGGG: %d\n",nfmod);
-
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
-            //sleep(1);
-
             current_pid = getpid(); //updated current process id to handling signal
 
             current_file_name = basePath; //update current file name to handling signal
@@ -232,25 +188,18 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
 
                         if(file_position == 4) argv[4] = path;
                         else if(file_position == 3) argv[3] = path;
-                        else printf("ERROR: file postion error\n");
+                        else printf("ERROR: file position error\n");
 
-                        int debug = xmod(argc, argv);
-
-                        printf("DEBUG DIR: %d\n", debug); 
-
-                        nfmod += debug;  //updates number of files modified
-
+                        xmod(argc, argv);
                         //execvp("./xmod", argv);
                         xmod_recursion(argc, argv, path, file_position);
                         
                         exit(0);
-        
                         break;
                     }
                     default:{
                         
                         pid = wait(&st);
-
                         break;
                     }
                 }  
@@ -264,21 +213,16 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
                 else if(file_position == 3) argv[3] = path;
                 else printf("ERROR: file postion error\n");
 
-                int debug = xmod(argc, argv); 
+                int n = xmod(argc, argv); 
 
-                printf("DEBUG REG: %d\n",debug);
+                nfmod += n;  //updates number of files modified
 
-                nfmod += debug;  //updates number of files modified
-
-                //*nfmod_ptr += debug;
                 xmod_recursion(argc, argv, path, file_position);
             }   
         }
     }
 
     closedir(dir);
-
-    printf("NFMOD: %d\n", nfmod);
 }
 
 /**
@@ -290,17 +234,14 @@ void xmod_recursion(int argc, char *argv[], char *basePath, int file_position)
  * @param file_position the position of the file name in the string array
  */
 void xmod_recursion_encapsulator(int argc, char *argv[], char *basePath, int file_position){
+    
     //code for first path
-    if(file_and_dir_checker(basePath)){
-        nftot++;
-
-        int debug = xmod(argc, argv);
-
-        printf("DEBUG FIRST: %d\n", debug);
+    nftot++;
         
-        nfmod += debug;
-    }
-
+    int n = xmod(argc, argv);
+    
+    nfmod += n;
+    
     xmod_recursion(argc, argv, basePath, file_position);
 }
 
@@ -315,51 +256,49 @@ int main(int argc, char *argv[]){
     //handle interrupt signal
     signal(SIGINT, handle_sigint);
 
-    uint8_t flag = 0x00;
-    
+    nfmod = 0;
+    nftot = 0;
+
+    uint8_t flag = 0x00; //flag for handler
+ 
     if(handler(&flag, argv, &argc)){
-        printf("error on handler\n");
+        //printf("error on handler\n");
         return 0;
     }
 
-    for( int i = 0; i < argc; i++){
-        printf("MAIN ARGV[%d] = %s\n", i, argv[i]);
-    }
-
-    bool not_recursive = true;
+    bool not_recursive = true; //to control wether it is a recursive call or not
 
     current_pid = getpid();
 
     if(argc > 2){ //to avoid segmentation error, when testing argv[1]
         //recursive option 
         if(strcmp(argv[1], "-R") == 0){
-            
-            char *path;
+            //char *path; //DEBUGGING PURPOSE TO USE TREE
 
             not_recursive = false;
+            
+            //two options
             if(argc == 5){ 
-                
-
-                path = argv[4]; //DEBUGGIND PURPOSE TO USE tree
+                //path = argv[4]; //DEBUGGIND PURPOSE TO USE TREE
 
                 xmod_recursion_encapsulator(argc, argv, argv[4], 4);  //TODO check if it is directory on basepath given to recursive mode
 
-                //DEBUGGING PURPOSE
-                print_tree_structure_encapsulator(path, 2);
+                //TREE STRUCTURE
+                //print_tree_structure_encapsulator(path, 2);
             }
+            //one option
             else if (argc == 4){
-
-                path = argv[3]; //DEBUGGIND PURPOSE TO USE tree
-
+                //path = argv[3]; //DEBUGGIND PURPOSE TO USE TREE
+            
                 xmod_recursion_encapsulator(argc, argv, argv[3], 3);
 
-                //DEBUGGING PURPOSE
-                print_tree_structure_encapsulator(path, 2);
+                //TREE STRUCTURE
+                //print_tree_structure_encapsulator(path, 2);
             }
         }
     }
 
-    //all the other options
+    //all the other options, besides recursive one
     if(not_recursive){
         nfmod += xmod(argc, argv);
     }

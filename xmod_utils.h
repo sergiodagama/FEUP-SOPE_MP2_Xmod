@@ -1,10 +1,6 @@
 /**
  * @file xmod_utils.h
- * @author N0il
  * @brief Header file of xmod_utils.c
- * @version 0.1
- * @date 2021-03-15
- * 
  * @copyright Copyright (c) 2021
  * 
  */
@@ -57,15 +53,9 @@ bool file_and_dir_checker(char file_name[]);
 
 bool octal_checker(char octals[]);
 
-char* mode_resolver(char mode_argument[]);
-
 bool octal_permissions_changer(char file_name[], char octals[]);
 
 bool octal_permissions_changer_with_display(char file_name[], char octals[], char option[]);
-
-int verbal_permissions_changer(char file_name[], char verbals[], char action[], char user_type[], char option[]);
-
-int verbal_permissions_changer_encapsulated(char file_name[], char option[], char mode[]);
 
 void equal_flag_updater(int bit, uint8_t equal_flag, uint8_t *user_perms, uint8_t *group_perms, uint8_t *other_perms);
 
@@ -88,5 +78,16 @@ int getopt_flag_updater( uint8_t *flag, char **argv, int argc);
 int handler(uint8_t *flag, char *argv[], int *argc);
 
 char* get_permissions_with_zero(char *file_name);
+
+/*
+
+//DEPRECATED FUNCTIONS
+
+int verbal_permissions_changer(char file_name[], char verbals[], char action[], char user_type[], char option[]);
+
+int verbal_permissions_changer_encapsulated(char file_name[], char option[], char mode[]);
+
+char* mode_resolver(char mode_argument[]);
+*/
 
 #endif //XMOD_UTILS
